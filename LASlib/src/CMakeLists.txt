@@ -62,7 +62,7 @@ foreach(file ${LAZ_SRC})
 endforeach(file)
 
 file(GLOB_RECURSE LAS_INCLUDES
-	${CMAKE_SOURCE_DIR}/LASzip/src/*.hpp 
+	${CMAKE_SOURCE_DIR}/LASzip/src/*.hpp
 	${CMAKE_SOURCE_DIR}/LASlib/inc/*.hpp
 )
 
@@ -79,37 +79,47 @@ target_include_directories(LASlib PUBLIC
   $<INSTALL_INTERFACE:include/LASlib>
 )
 set_target_properties(LASlib PROPERTIES
-	ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../lib
-	LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../lib
-	RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../lib
+    PUBLIC_HEADER ${LAS_INCLUDES}
+    ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
 )
 
 if(MSVC)
    target_compile_options(LASlib PRIVATE /Zi)
 
    # Tell linker to include symbol data
-    set_target_properties(LASlib PROPERTIES 
+    set_target_properties(LASlib PROPERTIES
         LINK_FLAGS "/INCREMENTAL:NO /DEBUG /OPT:REF /OPT:ICF"
     )
 
     # Set file name & location
-    set_target_properties(LASlib PROPERTIES 
-        COMPILE_PDB_NAME LASlib 
-        COMPILE_PDB_OUTPUT_DIR ${CMAKE_BINARY_DIR}
+    set_target_properties(LASlib PROPERTIES
+        COMPILE_PDB_NAME LASlib
+        COMPILE_PDB_OUTPUT_DIR ${CMAKE_BINARY_DIR}/bin
     )
 endif()
 
-install(FILES ${LAS_INCLUDES} DESTINATION include/LASlib)
+#install(FILES ${LAS_INCLUDES} DESTINATION include/LASlib)
 
-if (MSVC)
-	foreach( OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES} )
-		install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../lib/${OUTPUTCONFIG} DESTINATION lib/LASlib)
-	endforeach( OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES )
-else()
-	install(TARGETS LASlib EXPORT laslib-targets
-		ARCHIVE DESTINATION lib/LASlib
-		LIBRARY DESTINATION lib/LASlib
-		RUNTIME DESTINATION lib/LASlib)
-	install(EXPORT laslib-targets DESTINATION lib/cmake/LASlib)
-	install(FILES ${CMAKE_SOURCE_DIR}/LASlib/src/laslib-config.cmake DESTINATION lib/cmake/LASlib)
-endif(MSVC)
+install(TARGETS LASlib EXPORT LASlib_export
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/laslib)
+
+install(EXPORT LASlib_export DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${CMAKE_PROJECT_NAME} FILE laslibConfig.cmake)
+
+
+#if (MSVC)
+#	foreach( OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES} )
+#		install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../lib/${OUTPUTCONFIG} DESTINATION lib/LASlib)
+#	endforeach( OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES )
+#else()
+#	install(TARGETS LASlib EXPORT laslib-targets
+#		ARCHIVE DESTINATION lib/LASlib
+#		LIBRARY DESTINATION lib/LASlib
+#		RUNTIME DESTINATION lib/LASlib)
+#	install(EXPORT laslib-targets DESTINATION lib/cmake/LASlib)
+#	install(FILES ${CMAKE_SOURCE_DIR}/LASlib/src/laslib-config.cmake DESTINATION lib/cmake/LASlib)
+#endif(MSVC)
